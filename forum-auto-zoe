@@ -1,0 +1,53 @@
+from bs4 import BeautifulSoup
+import requests
+import pandas as pd
+
+url = 'http://forum-auto.caradisiac.com/marques/renault/sujet42866.htm'
+
+webpage = requests.get(url)
+data = webpage.text
+soup = BeautifulSoup(data,'html.parser')
+
+#create a dictionary
+d = {'key':'value'}
+print(d)
+
+#update the dictionary
+d['new key'] = 'new value'
+print(d)
+
+#create a dictionary following the former codes
+npo_responses = {}
+
+webpage = requests.get(url)
+data = webpage.text
+soup = BeautifulSoup(data,'html.parser')
+responses = soup.find_all('div',{'itemprop':'text'})
+
+response_num = 0
+page_num = 0
+
+while True:
+    webpage = requests.get(url)
+    data = webpage.text
+    soup = BeautifulSoup(data,'html.parser')
+    responses = soup.find_all('div',{'itemprop':'text'})
+
+    for response in responses:
+        response_num +=1
+        npo_responses[response_num] = [response_num,response.text]
+        
+        print('No:',response_num,'\nResponse:',response.text,'\n---')
+        
+    page_num +=1   
+    url = 'http://forum-auto.caradisiac.com/marques/renault/sujet42866-' + str(page_num*35) + '.htm'
+    print(url)
+    if page_num > 191:
+        break
+
+print('total number of responses:',response_num)
+npo_responses_df = pd.DataFrame.from_dict(npo_responses,orient = 'index',columns = ['No','Response'])
+
+#print the first 10 rows
+npo_responses_df.to_csv('forum-auto-zoe')
+
